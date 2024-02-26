@@ -20,7 +20,7 @@ Options:
 	3[h/H]		set time in 3 hours
 	4h4m		set timestamps in 4 hours and 4minutes
 	5:5:5		set timestamps (format: hh:mm:ss)
-	-p 6 7 8 9	set pomodore time intervals in minutes
+	-p <t> <p> <r>	set pomodore time intervals in minutes (format <t[ime]> <p[ause]> <r[epetitions]>)
 
 #  Timer create by mdfk
 #  To learn more about my projets go to https://github.com/mdfk15/"
@@ -60,23 +60,48 @@ time_counter() {
 	for i in $(seq $seconds);do
 		timestamps=$(($seconds-$i))
 		time_left=$(date -d "@$timestamps" -u +%H:%M:%S)
-		echo -ne "\rTime left: $time_left"
+		echo -ne "\rTime left: $time_left $intervals_msg"
 		notify
 		sleep 1
 	done
 }
 
 pomodoro() {
-	time_intervals="$@"
-	echo "Pomodore intervals: $time_intervals (minutes)"
-	for i in $time_intervals;do
-		seconds=''
-		minutes=$i
-		time_to_seconds "$hours:$minutes:$seconds"
-		time_counter
+	echo "Started at $(date +'%I:%M:%S %P')"
+
+	# Define pomodoro, breaks and laps
+	if [[ -n "$@" ]];then
+		[ "$1" -gt "$2" ] && work_time="$1" break_time="$2" || work_time="$2" break_time="$1"
+		time_laps="$3"
+	else
+		work_time=25
+		break_time=5
+		time_laps="4"
+	fi
+
+	# Start pomodoro laps count
+	for i in $(seq $time_laps);do
+		((interval+=1))
+		intervals_started=''
+
+		# Work and Breaks count
+		for t in $work_time $break_time;do
+			# Print if work or break time in bold
+			if [ "$time_status" == "Break" ] || [ -z "$time_status" ];then
+				time_status='Work'
+				intervals_progress="\033[1m$work_time\033[m $break_time"
+			else
+				time_status='Break'
+				intervals_progress="$work_time \033[1m$break_time\033[m"
+			fi
+			intervals_msg="- $time_status $intervals_progress ($interval/$time_laps)"
+			# Start counter process
+			seconds=''
+			minutes=$t
+			time_to_seconds "$hours:$minutes:$seconds"
+			time_counter
+		done
 	done
-	echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
-	exit
 }
 
 timer() {
