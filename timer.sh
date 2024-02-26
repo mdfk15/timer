@@ -5,6 +5,7 @@
 #  To learn more about my projets
 #  go to https://github.com/mdfk15/
 
+# DEFAULTS
 time_arguments=$1
 hours=00
 minutes=00
@@ -38,17 +39,16 @@ time_to_seconds() {
 }
 
 notify() {
-	if [[ "$timestamps" == "300" ]] || [[ "$timestamps" -lt 10 ]] ;then
-		time_to_notify=$(echo $time_left | awk -F: '$2==00 && $3<=10 && $3>=1 {print $3,"seconds to left"} $2==00 && $3==00 {print "Its time to do it!"} $2==05 {print $2,"minutes to left"}')
-		notify-send -a "Timer" "$time_to_notify" -r 34020
-
+	if [ "$timestamps" == "300" ] || [ "$timestamps" == 60 ] || [ "$timestamps" -lt 10 ] ;then
+		time_to_notify=$(echo $time_left | awk -F: '$2==00 && $3<=10 && $3>=1 {print $3,"seconds to left"} $2==00 && $3==00 {print "Its time to do it!"} $2==01 || $2==05 {print $2,"minutes to left"}')
+		systemctl --user is-active --quiet dunst && notify-send -i timer -a "Timer" "$time_to_notify" -r 34020
 	fi
 }
 
 time_segmentation() {
-	if [[ "$time_arguments" =~ [hH] ]];then hours=$(echo "$time_arguments" | grep -oP '\d+([hH])' | sed -E 's/h|H//');fi
-	if [[ "$time_arguments" =~ [mM] ]];then minutes=$(echo "$time_arguments" | grep -oP '\d+([mM])' | sed -E 's/m|M//');fi
-	if [[ "$time_arguments" =~ [sS] ]];then seconds=$(echo "$time_arguments" | grep -oP '\d+([sS])' | sed -E 's/s|S//');fi
+	hours=$(echo "$time_arguments" | grep -oP '\d+([hH])' | sed -E 's/h|H//')
+	minutes=$(echo "$time_arguments" | grep -oP '\d+([mM])' | sed -E 's/m|M//')
+	seconds=$(echo "$time_arguments" | grep -oP '\d+([sS])' | sed -E 's/s|S//')
 	time_to_seconds "$hours:$minutes:$seconds"
 }
 
@@ -62,10 +62,8 @@ time_counter() {
 	done
 }
 
-if [[ "$time_arguments" =~ '-h' ]];then
-	usage
-elif [[ "$time_arguments" == '-p' ]];then
-	time_intervals="${@:2}"
+pomodoro() {
+	time_intervals="$@"
 	echo "Pomodore intervals: $time_intervals (minutes)"
 	for i in $time_intervals;do
 		seconds=''
@@ -75,7 +73,10 @@ elif [[ "$time_arguments" == '-p' ]];then
 	done
 	echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
 	exit
-else
+}
+
+timer() {
+	# Check type of time segmentation
 	if [[ "$time_arguments" =~ [hHmMsS] ]];then
 		time_segmentation
 	elif [[ "$time_arguments" =~ ':' ]];then 
@@ -85,7 +86,15 @@ else
 		exit
 	fi
 	msg_generator
+	time_counter
+}
+
+if [[ "$time_arguments" =~ '-h' ]];then
+	usage
+elif [[ "$time_arguments" == '-p' ]];then
+	pomodoro "${@:2}"
+else
+	timer
 fi
 	
-time_counter
 echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
