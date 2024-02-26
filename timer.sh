@@ -19,6 +19,7 @@ Options:
 	3[h/H]		set time in 3 hours
 	4h4m		set timestamps in 4 hours and 4minutes
 	5:5:5		set timestamps (format: hh:mm:ss)
+	-p 6 7 8 9	set pomodore time intervals in minutes
 
 #  Timer create by mdfk
 #  To learn more about my projets go to https://github.com/mdfk15/"
@@ -39,7 +40,8 @@ time_to_seconds() {
 notify() {
 	if [[ "$timestamps" == "300" ]] || [[ "$timestamps" -lt 10 ]] ;then
 		time_to_notify=$(echo $time_left | awk -F: '$2==00 && $3<=10 && $3>=1 {print $3,"seconds to left"} $2==00 && $3==00 {print "Its time to do it!"} $2==05 {print $2,"minutes to left"}')
-		dunstify -a "Timer" "$time_to_notify" -h string:x-dunst-stack-tag:timer
+		notify-send -a "Timer" "$time_to_notify" -r 34020
+
 	fi
 }
 
@@ -50,8 +52,29 @@ time_segmentation() {
 	time_to_seconds "$hours:$minutes:$seconds"
 }
 
+time_counter() {
+	for i in $(seq $seconds);do
+		timestamps=$(($seconds-$i))
+		time_left=$(date -d "@$timestamps" -u +%H:%M:%S)
+		echo -ne "\rTime left: $time_left"
+		notify
+		sleep 1
+	done
+}
+
 if [[ "$time_arguments" =~ '-h' ]];then
 	usage
+elif [[ "$time_arguments" == '-p' ]];then
+	time_intervals="${@:2}"
+	echo "Pomodore intervals: $time_intervals (minutes)"
+	for i in $time_intervals;do
+		seconds=''
+		minutes=$i
+		time_to_seconds "$hours:$minutes:$seconds"
+		time_counter
+	done
+	echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
+	exit
 else
 	if [[ "$time_arguments" =~ [hHmMsS] ]];then
 		time_segmentation
@@ -64,12 +87,5 @@ else
 	msg_generator
 fi
 	
-for i in $(seq $seconds);do
-	timestamps=$(($seconds-$i))
-	time_left=$(date -d "@$timestamps" -u +%H:%M:%S)
-	echo -ne "\rTime left: $time_left"
-	notify
-	sleep 1
-done
-
+time_counter
 echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
