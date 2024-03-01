@@ -7,6 +7,18 @@
 
 # DEFAULTS
 time_arguments=$1
+path=$HOME/.local/share/timer
+current_log=$path/current.log
+history_log=$path/stats.log
+
+[ ! -e $path ] && mkdir $path
+[ ! -e $current_log ] && touch $current_log
+if [ "$(date -r $current_log '+%d%m%y')" -lt "$(date '+%d%m%y')" ];then
+	cat "$current_log" >> $history_log
+	> $current_log
+fi
+[ ! -s "$current_log" ] && date '+%d.%m:0:0' > $current_log
+
 hours=00
 minutes=00
 seconds=00
@@ -66,8 +78,21 @@ time_counter() {
 	done
 }
 
+log_usage() {
+	case "$time_status" in
+		'Work')
+			((stats_work+=$seconds));;
+		'Break')
+			((stats_break+=$seconds));;
+	esac
+	echo "$stats_day:$stats_work:$stats_break" > $current_log
+}
+
 pomodoro() {
 	echo "Started at $(date +'%I:%M:%S %P')"
+	stats_day=$(cat $current_log | awk -F: '{print $1}')
+	stats_work=$(cat $current_log | awk -F: '{print $2}')
+	stats_break=$(cat $current_log | awk -F: '{print $3}')
 
 	# Define pomodoro, breaks and laps
 	if [[ -n "$@" ]];then
@@ -76,7 +101,7 @@ pomodoro() {
 	else
 		work_time=25
 		break_time=5
-		time_laps="4"
+		time_laps="2"
 	fi
 
 	# Start pomodoro laps count
@@ -94,12 +119,15 @@ pomodoro() {
 				time_status='Break'
 				intervals_progress="$work_time \033[1m$break_time\033[m"
 			fi
+
 			intervals_msg="- $time_status $intervals_progress ($interval/$time_laps)"
+
 			# Start counter process
 			seconds=''
 			minutes=$t
 			time_to_seconds "$hours:$minutes:$seconds"
 			time_counter
+			log_usage
 		done
 	done
 }
