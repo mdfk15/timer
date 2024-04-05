@@ -66,7 +66,7 @@ time_segmentation() {
 
 time_counter() {
 	# QUEST NOTIFICATION TO START
-	ready_msg=$(echo -e "Are you ready?\nClick to start")
+	ready_msg=$(echo -e "Are you ready to $time_status?\nClick to start")
 	user_ready="$(notify-send -A ready=userready -i timer -a 'Timer' "$ready_msg" -t 60000 -r 34020 >/dev/null 2>&1)"
 
 	for i in $(seq $seconds);do
