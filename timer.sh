@@ -64,11 +64,14 @@ time_segmentation() {
 	time_to_seconds "$hours:$minutes:$seconds"
 }
 
-time_counter() {
+user_ready() {
 	# QUEST NOTIFICATION TO START
 	ready_msg=$(echo -e "Are you ready to $time_status?\nClick to start")
-	user_ready="$(notify-send -A ready=userready -i timer -a 'Timer' "$ready_msg" -t 60000 -r 34020 >/dev/null 2>&1)"
+	notify-send -A ready=userready -i timer -a 'Timer' "$ready_msg" -t 60000 -r 34020 >/dev/null 2>&1
+}
 
+
+time_counter() {
 	for i in $(seq $seconds);do
 		timestamps=$(($seconds-$i))
 		time_left=$(date -d "@$timestamps" -u +%H:%M:%S)
@@ -126,6 +129,7 @@ pomodoro() {
 			seconds=''
 			minutes=$t
 			time_to_seconds "$hours:$minutes:$seconds"
+			user_ready
 			time_counter
 			log_usage
 		done
