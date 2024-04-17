@@ -1,0 +1,116 @@
+." Process this file with
+." groff -man -Tascii timer.1
+."
+.TH timer(1)
+
+.Sh NAME
+.B timer
+- a minimalist timer and pomodore tool
+         _________
+        /   12    \\ \\ 
+        |    |    | /  - Hi! I'm missminute.
+        |9   |   3|/     I'm here to help you to manage your time Mr. Timely
+       /|     \\   |
+      / \\____6____/
+           |   |
+           |   |
+          _|   |_
+
+.SH SYNOPSIS
+.B timer
+.RB [OPTIONS]
+
+.SH DESCRIPTION
+.B timer
+Set time in the given format. Implements bash, awk, notify-send (if active) and not much more. 
+This work by parsing a timestamp argument that are automatically processed.
+The main parameters are:
+
+.RS
+.nf
+
+.TP
+.B time
+- Descriptive time (1s, 2m, 3h), this includes a value greater than the segmented time. Ex 90m.
+.TP
+.B timestamps
+- Use timer by timestamps format (hh:mm:ss).
+.TP
+.B pomodore
+- Set your time in work, break and repetitions to focus with pomodore.
+.TP
+.B stats
+- Pomodore stats are be store in ~/.local/share/timer if you want see your performance. (graphics stats are be implemented soon to display it).
+.TP
+.B NOTIFY-SEND
+- notify-send is implemented to send information trought notifications.
+.RE
+
+
+.SH OPTIONS
+.B 1s, 1S
+Set timer in 1 s[econds].
+
+.B 2m, 2M
+Set timer in 2 m[inutes].
+
+.B 3h, 3H
+Set timer in 3 h[ours].
+
+.B -p, --pomodore
+<w> <b> <r>
+.TP
+.PP
+Set pomodore time intervals in minutes. 
+Format:
+.B w[ork] b[reak] r[epetitions]
+
+.TP
+.B -h, --help
+Prints help
+
+.SH FILES
+.TP
+.I
+~/.local/share/timer/current.log
+.TP
+.I
+~/.local/share/timer/stats.log
+
+.SH EXAMPLES
+.TP
+timer
+.B 3h30m
+.TP
+.PP
+Run a compound timer (3 hours and 30 minutes).
+.TP
+timer
+.B 10s45m1h
+.TP
+.PP
+Indifferent order are supported..
+.TP
+timer
+.B 01:45:10
+.TP
+.PP
+Set timer with timestamps (1 hour 45 minutes and 10 seconds)
+.TP
+timer
+.B -p 25 5 3
+.TP
+.PP
+Run a pomodore timer (work 25m and break 5m, three times).
+
+
+.SH SEE ALSO
+.BR notify-send (1),
+
+.SH CREDITS
+.PP
+This man page is created by Cristian Bernal <mtber@keemail.me>
+
+.SH
+.PP
+timer(1)
