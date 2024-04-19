@@ -226,8 +226,7 @@ timer() {
 	time_counter
 }
 
-
-if [[ "$@" =~ '-m' ]]; then
+missminutes_defaults(){
 	missminutes='yes'
 	step1='
      _________
@@ -251,15 +250,35 @@ if [[ "$@" =~ '-m' ]]; then
 	
 	ART_LINE_SIZE=$(echo "$step1" | wc -l)
 	for l in $(seq $ART_LINE_SIZE); do echo; done
-fi
+}
 
-if [[ "$time_arguments" =~ '-h' ]];then
-	usage
-elif [[ "$time_arguments" == '-p' ]];then
-	pomodoro "${@:2}"
-else
-	timer
+if [[ "$@" =~ '-m' ]]; then
+	missminutes_defaults
 fi
+#if [[ "$time_arguments" =~ '-h' ]];then
+#	usage
+#elif [[ "$time_arguments" == '-p' ]];then
+#	pomodoro "${@:2}"
+#else
+#	timer
+#fi
 	
+getopt "mp:h" $@ > /dev/null
+while [ -n "$1" ]
+do
+	case "$1" in
+		-m) ;;
+		-p) pomodoro "$2" "$3" "$4"
+			shift 3;;
+		-h) usage
+			shift;;
+		--) shift 
+			break;;
+		*) time_arguments=$1
+			timer;;
+	esac
+	shift
+done
+
 [ "$missminutes" == 'yes' ] && missminutes_finish
 echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
