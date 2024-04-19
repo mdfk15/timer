@@ -164,7 +164,7 @@ log_usage() {
 }
 
 pomodoro() {
-	echo "Started at $(date +'%I:%M:%S %P')"
+	started_mesg="Started at $(date +'%I:%M:%S %P')"
 	stats_day=$(cat $current_log | awk -F: '{print $1}')
 	stats_work=$(cat $current_log | awk -F: '{print $2}')
 	stats_break=$(cat $current_log | awk -F: '{print $3}')
@@ -195,14 +195,22 @@ pomodoro() {
 				intervals_progress="$work_time \033[1m$break_time\033[m"
 			fi
 
-			intervals_msg="State: $time_status $intervals_progress ($interval/$time_laps)"
+			intervals_mesg="State: $time_status $intervals_progress ($interval/$time_laps)"
 
 			# Start counter process
 			seconds=''
 			minutes=$t
 			time_to_seconds "$hours:$minutes:$seconds"
-			tput el
-			echo -e "$intervals_msg"
+			if [ "$missminutes" == 'yes' ]; then
+				tput cuu $(( ART_LINE_SIZE - 5 ))
+				started_mesg="\t\t    $started_mesg"
+				intervals_mesg="\t\t    $intervals_mesg"
+			fi
+			echo -e "$started_mesg"
+			echo -e "$intervals_mesg"
+			[ "$missminutes" == 'yes' ] && echo
+			tput cuu $ART_LINE_SIZE
+			echo "$step1"
 			user_ready
 			time_counter
 			tput cuu 1
