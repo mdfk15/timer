@@ -23,6 +23,12 @@ hours=00
 minutes=00
 seconds=00
 
+
+#[ ! -e $usage_file ] && cp $self_path/.rsc/usage.txt $path/
+#usage(){
+#	cat $path/usage.txt
+#	exit
+#}
 usage(){
 	echo -e "Usage: timer [options]..
 Options:
@@ -64,8 +70,8 @@ missminutes(){
 	step3='
      _________
     /   12    \    
-    |    |    |    
-   /|9   |   3|\  
+    |    |    |   ~ Hey! We are finish here
+   /|9   |   3|\   
    \|     \   |/   
    /\____6____/\   
        |   |
@@ -122,7 +128,8 @@ time_counter() {
 	for i in $(seq $seconds);do
 		timestamps=$(($seconds-$i))
 		time_left=$(date -d "@$timestamps" -u +%H:%M:%S)
-		echo -ne "\rTime left: $time_left $intervals_msg"
+		echo "Time left: $time_left"
+		tput cuu 1
 		notify
 		sleep 1
 	done
@@ -170,17 +177,21 @@ pomodoro() {
 				intervals_progress="$work_time \033[1m$break_time\033[m"
 			fi
 
-			intervals_msg="- $time_status $intervals_progress ($interval/$time_laps)"
+			intervals_msg="State: $time_status $intervals_progress ($interval/$time_laps)"
 
 			# Start counter process
 			seconds=''
 			minutes=$t
 			time_to_seconds "$hours:$minutes:$seconds"
+			tput el
+			echo -e "$intervals_msg"
 			user_ready
 			time_counter
+			tput cuu 1
 			log_usage
 		done
 	done
+	echo
 }
 
 timer() {
