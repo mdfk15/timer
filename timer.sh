@@ -39,6 +39,53 @@ Options:
 	exit
 }
 
+missminutes(){
+	step1='
+     _________
+    /   12    \ \  
+    |    |    | / 
+    |9   |   3|/  
+   /|     \   |   
+  / \____6____/   
+       |   |
+       |   |
+      _|   |_'
+	step2='
+     _________
+    /   12    \  / 
+    |    |    | / 
+    |9   |   3|/  
+   /|     \   |   
+  / \____6____/   
+       |   |
+       |   |
+      _|   |_'
+	
+	step3='
+     _________
+    /   12    \    
+    |    |    |    
+   /|9   |   3|\  
+   \|     \   |/   
+   /\____6____/\   
+       |   |
+       |   |
+      _|   |_'
+	ART_LINE_SIZE=$(echo "$step1" | wc -l)
+	for l in $(seq $ART_LINE_SIZE); do echo; done
+	for r in $(seq 3)
+	do
+		for n in "$step1" "$step2"
+		do
+			tput cuu $ART_LINE_SIZE
+			echo "$n"
+			sleep 0.5
+		done
+	done
+	tput cuu $ART_LINE_SIZE
+	echo "$step3"
+}
+
 msg_generator(){
 	echo "Started at $(date +'%I:%M:%S %P')"
 	time_set=$(date -d "@$seconds" -u +%H:%M:%S)
@@ -158,4 +205,5 @@ else
 	timer
 fi
 	
+missminutes
 echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
