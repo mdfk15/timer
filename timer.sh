@@ -23,12 +23,6 @@ hours=00
 minutes=00
 seconds=00
 
-
-#[ ! -e $usage_file ] && cp $self_path/.rsc/usage.txt $path/
-#usage(){
-#	cat $path/usage.txt
-#	exit
-#}
 usage(){
 	echo -e "Usage: timer [options]..
 Options:
@@ -45,7 +39,22 @@ Options:
 	exit
 }
 
-missminutes(){
+
+missminutes_count(){
+	if [ "$state" == 'tic' ] || [ -z "$state" ];then
+		tictac=$step2
+		state='tac'
+	elif [ "$state" == 'tac' ];then
+		tictac=$step1
+		state='tic'
+	fi
+	tput cuu $ART_LINE_SIZE
+	echo "$tictac"
+	tput cuu $(( ART_LINE_SIZE - 8 ))
+	echo -e "\t\t    Time left: $time_left"
+}
+
+missminutes_finish(){
 	step1='
      _________
     /   12    \ \  
@@ -53,7 +62,6 @@ missminutes(){
     |9   |   3|/  
    /|     \   |   
   / \____6____/   
-       |   |
        |   |
       _|   |_'
 	step2='
@@ -64,21 +72,19 @@ missminutes(){
    /|     \   |   
   / \____6____/   
        |   |
-       |   |
       _|   |_'
 	
 	step3='
      _________
-    /   12    \    
-    |    |    |   ~ Hey! We are finish here
+    /   12    \     ~ Hey! We are finish here
+    |    |    |   
    /|9   |   3|\   
    \|     \   |/   
    /\____6____/\   
        |   |
-       |   |
       _|   |_'
+
 	ART_LINE_SIZE=$(echo "$step1" | wc -l)
-	for l in $(seq $ART_LINE_SIZE); do echo; done
 	for r in $(seq 3)
 	do
 		for n in "$step1" "$step2"
@@ -93,10 +99,18 @@ missminutes(){
 }
 
 msg_generator(){
-	echo "Started at $(date +'%I:%M:%S %P')"
+	started_mesg="Started at $(date +'%I:%M:%S %P')"
 	time_set=$(date -d "@$seconds" -u +%H:%M:%S)
 	msg=$(echo $time_set | awk -F: 'BEGIN {ORS=" "}; $1>=01 {print $1,"hours"} $2>=01 {print $2,"minutes"} $3>=01 {print $3,"seconds"}')
-	echo "Time set: $msg"
+	set_mesg="Time set: $msg"
+	if [ "$missminutes" == 'yes' ]; then
+		tput cuu $(( ART_LINE_SIZE - 5 ))
+		started_mesg="\t\t    $started_mesg"
+		set_mesg="\t\t    $set_mesg"
+	fi
+	echo -e "$started_mesg"
+	echo -e "$set_mesg"
+	[ "$missminutes" == 'yes' ] && echo
 }
 
 time_to_seconds() {
@@ -128,8 +142,12 @@ time_counter() {
 	for i in $(seq $seconds);do
 		timestamps=$(($seconds-$i))
 		time_left=$(date -d "@$timestamps" -u +%H:%M:%S)
-		echo "Time left: $time_left"
-		tput cuu 1
+		if [ "$missminutes" == 'yes' ]; then
+			missminutes_count
+		else
+			echo "Time left: $time_left"
+			tput cuu 1
+		fi
 		notify
 		sleep 1
 	done
@@ -208,6 +226,33 @@ timer() {
 	time_counter
 }
 
+
+if [[ "$@" =~ '-m' ]]; then
+	missminutes='yes'
+	step1='
+     _________
+    /   12    \    
+    |    |    |   
+   /|9   |   3|\   
+   \|     \   |/   
+   /\____6____/\   
+       |   |
+      _|   |_'
+	
+	step2='
+     _________
+    /   12    \    
+    |    |    |   
+   /|9   |   3|\   
+   \|     \   |/   
+   /\____6____/\   
+       |   |
+      _|   |/'
+	
+	ART_LINE_SIZE=$(echo "$step1" | wc -l)
+	for l in $(seq $ART_LINE_SIZE); do echo; done
+fi
+
 if [[ "$time_arguments" =~ '-h' ]];then
 	usage
 elif [[ "$time_arguments" == '-p' ]];then
@@ -216,5 +261,5 @@ else
 	timer
 fi
 	
-missminutes
+[ "$missminutes" == 'yes' ] && missminutes_finish
 echo -e "\nFinished at $(date +'%I:%M:%S %P'), thanks for use it"
