@@ -50,13 +50,12 @@ missminutes_count(){
 	fi
 	tput cuu $ART_LINE_SIZE
 	echo "$tictac"
-	tput cuu $(( ART_LINE_SIZE - 8 ))
+	tput cuu 1
 	echo -e "\t\t    Time left: $time_left"
 }
 
 missminutes_finish(){
-	step1='
-     _________
+	step1='     _________
     /   12    \ \  
     |    |    | / 
     |9   |   3|/  
@@ -64,8 +63,7 @@ missminutes_finish(){
   / \____6____/   
        |   |
       _|   |_'
-	step2='
-     _________
+	step2='     _________
     /   12    \  / 
     |    |    | / 
     |9   |   3|/  
@@ -74,8 +72,7 @@ missminutes_finish(){
        |   |
       _|   |_'
 	
-	step3='
-     _________
+	step3='     _________
     /   12    \     ~ Hey! We are finish here
     |    |    |   
    /|9   |   3|\   
@@ -165,6 +162,7 @@ log_usage() {
 
 pomodoro() {
 	started_mesg="Started at $(date +'%I:%M:%S %P')"
+	[ "$missminutes" == 'yes' ] && started_mesg="\t\t    $started_mesg"
 	stats_day=$(cat $current_log | awk -F: '{print $1}')
 	stats_work=$(cat $current_log | awk -F: '{print $2}')
 	stats_break=$(cat $current_log | awk -F: '{print $3}')
@@ -203,17 +201,15 @@ pomodoro() {
 			time_to_seconds "$hours:$minutes:$seconds"
 			if [ "$missminutes" == 'yes' ]; then
 				tput cuu $(( ART_LINE_SIZE - 5 ))
-				started_mesg="\t\t    $started_mesg"
-				intervals_mesg="\t\t    $intervals_mesg"
+				echo -e "$started_mesg"
+				tput el
+				echo -e "\t\t    $intervals_mesg"
+				echo
+				tput cuu $ART_LINE_SIZE
+				echo "$step1"
 			fi
-			echo -e "$started_mesg"
-			echo -e "$intervals_mesg"
-			[ "$missminutes" == 'yes' ] && echo
-			tput cuu $ART_LINE_SIZE
-			echo "$step1"
 			user_ready
 			time_counter
-			tput cuu 1
 			log_usage
 		done
 	done
@@ -236,8 +232,7 @@ timer() {
 
 missminutes_defaults(){
 	missminutes='yes'
-	step1='
-     _________
+	step1='     _________
     /   12    \    
     |    |    |   
    /|9   |   3|\   
@@ -246,8 +241,7 @@ missminutes_defaults(){
        |   |
       _|   |_'
 	
-	step2='
-     _________
+	step2='     _________
     /   12    \    
     |    |    |   
    /|9   |   3|\   
@@ -260,7 +254,7 @@ missminutes_defaults(){
 	for l in $(seq $ART_LINE_SIZE); do echo; done
 }
 
-if [[ "$@" =~ '-m' ]]; then
+if [[ "$@" =~ '-m' ]] && ! [[ "$@" =~ '-h' ]]; then
 	missminutes_defaults
 fi
 #if [[ "$time_arguments" =~ '-h' ]];then
